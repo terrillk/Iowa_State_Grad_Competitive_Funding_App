@@ -1,0 +1,17 @@
+Plaintext
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+# Ignore environmental variables / secrets (for later)
+venv/
+.env
+
+# Ignore local IDE settings
+.vscode/
+.idea/
+
+#Ignore database seeding scripts
+.DONE_populateDepartments.py
+.DONE_populatePrograms.py

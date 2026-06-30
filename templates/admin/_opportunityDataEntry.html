@@ -1,0 +1,76 @@
+        <!-- form needs these data: 
+        * selected_opportunity
+        * opportunity_name
+        * opportunity
+        * organizations
+        * current_organization
+        -->
+<div>
+    <form id="opportunityDataEntryForm" 
+        hx-post="/opportunity-details" 
+        hx-target="#opportunity_details" 
+        hx-swap="innerHTML">
+        <input type="hidden" name="opportunity_name" value="{{ opportunity_name }}">
+        <label for="organization_name">Organization:</label>
+        <select style="width: 50%"
+            id="organization_name"
+            name="organization_name"
+            class="select2" 
+            data-tags="true"
+            >
+            <option value="">{{ selected_opportunity }}</option>
+
+            {% for organization in organizations %} 
+                <option value="{{ organization[0] }}" 
+                        {% if current_organization and organization[0] == current_organization[0] %}selected {% endif %}]>
+                    {{ organization[0] }}
+                </option>
+            {% endfor %}
+        </select><br>
+        <label for="opportunity_description">Opportunity description:</label>
+        <textarea id="opportunity_description"
+            name="opportunity_description">{{ opportunity[3] if opportunity else ''}}
+        </textarea><br>
+        <label for="website_url">Opportunity website:</label>
+        <input type="text" id="website_url" name="website_url" value="{{ opportunity[2] if opportunity else '' }}"><br>
+        <input id="submit_opportunity_data" 
+            type="submit" 
+            value="Submit">
+        <button type="button" onclick="clearDetailsForm()">Clear form</button> <!-- clear form just blanks out the values in each area -->
+        {% if opportunity %}
+            <!-- Editing an existing opportunity: clearing discards edits, returns to the static view -->
+            <button type="button" 
+                    hx-get="/opportunity-details" 
+                    hx-vals='{"opportunity_name": "{{ opportunity_name }}" }'
+                    hx-target="#opportunity_details"
+                    hx-swap="innerHTML"
+                    hx-confirm="Are you sure you wish to cancel editing?">Cancel</button>
+        {% else %}
+            <!-- Brand-new opportunity: clearing abandons entry entirely, nothing to show -->
+            <button type="button" 
+                    onclick="confirmCancel();
+                        document.getElementById('opportunity_details').innerHTML = '';
+                        $('#opportunity_name').val(null).trigger('change.select2');
+                        ">
+                Cancel
+            </button>
+        {% endif %}
+    </form>
+    <script>
+        $(".select2").select2({
+            placeholder: "Select organization",
+            allowClear: true
+        });
+        function clearDetailsForm() {
+            document.getElementById('opportunity_description').value = '';
+            document.getElementById('website_url').value = '';
+            $('#organization_name').val(null).trigger('change');
+            document.getElementById('submit_opportunity_data').disabled = true;
+        }
+        function confirmCancel() {
+            confirm("Are you sure you wish to cancel editing?");
+        }
+    </script>
+</div>
+
+

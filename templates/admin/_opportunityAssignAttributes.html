@@ -1,0 +1,143 @@
+<!-- form needs these data: 
+    * allAwardTypes
+    * joinedAwardTypes
+    * allNationalities
+    * joinedNationalities
+    * allFields
+    * joinedFields
+    * allStages
+    * joinedStages
+    * opportunity_id
+-->
+    
+
+<div>
+    <div name="awardTypeDiv">
+        <form id="opportunityAssignAttributes" 
+            hx-post="/opportunity-attributes"
+            hx-target="#opportunity_details, #opportunity_attributes"
+            hx-swap="innerHTML"
+        >
+            <!-- send the opportunity ID to the server with the attribute data -->
+            <input type="hidden" name="opportunity_id" value="{{ opportunity_id }}">
+            <!-- Award Type fieldset-->            
+            <fieldset class="checkbox-mixed">
+                <legend>What type of award is this? (Select all that apply)</legend>
+                <div role="checkbox"
+                    class="group_checkbox"
+                    aria-checked="mixed"
+                    aria-controls="{% for a in awardTypes %}awardType-{{ a[1] }} {% endfor %}"
+                    tabindex="0">
+                    Select/deselect all
+                </div><br>
+                {% for awardType in allAwardTypes %}
+                <input type="checkbox" 
+                    name="awardType" 
+                    value="{{ awardType[1] }}" 
+                    id="awardtype-{{ awardType[1] }}" 
+                    {% if awardType[1] in joinedAwardTypes %} checked {% endif %}
+                >
+                <label for="awardtype-{{ awardType[1] }}">{{ awardType[0] }}</label><br>
+                {% endfor %}
+            </fieldset>
+            <!-- Stage of Study fieldset-->
+            <fieldset class="checkbox-mixed">
+                <legend>What stages of study are eligible? (Select all that apply)</legend>
+                <div role="checkbox"
+                    class="group_checkbox"
+                    aria-checked="mixed"
+                    aria-controls="{% for s in stages %}stage-{{ s[1] }} {% endfor %}"
+                    tabindex="0">
+                    Select/deselect all
+                </div><br>
+                {% for stage in allStages %}
+                <input type="checkbox" 
+                    name="stage" 
+                    value="{{ stage[1] }}" 
+                    id="stage-{{ stage[1] }}" 
+                    {% if stage[1] in joinedStages %} checked {% endif %}
+                >
+                <label for="stage-{{ stage[1] }}">{{ stage[0] }}</label><br>
+                {% endfor %}
+            </fieldset>
+            <!-- Disciplinary Field fieldset-->            
+            <fieldset class="checkbox-mixed">
+                <legend>What disciplinary fields are eligible? (Select all that apply)</legend>
+                <div role="checkbox"
+                    class="group_checkbox"
+                    aria-checked="mixed"
+                    aria-controls="{% for f in fields %}field-{{ f[1] }} {% endfor %}"
+                    tabindex="0">
+                    Select/deselect all
+                </div><br>
+                {% for field in allFields %}
+                <input type="checkbox" 
+                    name="field" 
+                    value="{{ field[1] }}" 
+                    id="field-{{ field[1] }}" 
+                    {% if field[1] in joinedFields %} checked {% endif %}
+                >
+                <label for="field-{{ field[1] }}">{{ field[0] }}</label><br>
+                {% endfor %}
+            </fieldset>
+            <!-- Nationality fieldset-->
+            <fieldset class="checkbox-mixed">
+                <legend>What nationalities are eligible? (Select all that apply)</legend>
+                <div role="checkbox"
+                    class="group_checkbox"
+                    aria-checked="mixed"
+                    aria-controls="{% for n in nationalities %}nationality-{{ n[1] }} {% endfor %}"
+                    tabindex="0">
+                    Select/deselect all
+                </div><br>
+                {% for nationality in allNationalities %}
+                <input type="checkbox" 
+                    name="nationality" 
+                    value="{{ nationality[1] }}" 
+                    id="nationality-{{ nationality[1] }}" 
+                    {% if nationality[1] in joinedNationalities %} checked {% endif %}
+                >
+                <label for="nationality-{{ nationality[1] }}">{{ nationality[0] }}</label><br>
+                {% endfor %}
+            </fieldset>
+            <button type="submit">Save attributes</button>
+            <button type="button" onclick="clearAllAttributes()">Clear form</button> <!-- clear form just blanks out the values in each area -->
+            <!-- Editing an existing opportunity: clearing discards edits, returns to the static view -->
+            <button type="button" 
+                    hx-get="/opportunity-details?opportunity_id={{ opportunity_id }}" 
+                    hx-target="#opportunity_details"
+                    hx-swap="innerHTML"
+                    hx-confirm="Are you sure you wish to cancel editing?"
+                    hx-on:click="document.getElementById('opportunity_attributes').innerHTML = ''"
+                    >Cancel</button>
+        </form>
+    </div>
+
+
+    <script language="JavaScript">
+
+        function mapList(label, list) {
+            const stringList = list.map(item => '${label}-${item[1]}').join('');
+            return stringList
+        }
+        
+        function clearAllAttributes() {
+            const fieldsets = document.querySelectorAll('.checkbox-mixed');
+            fieldsets.forEach(fieldset => {
+                const checkboxes = fieldset.querySelectorAll('input[type="checkbox"]');
+                const masterNode = fieldset.querySelector('[role="checkbox"]');
+
+                checkboxes.forEach(cb => {
+                    cb.checked = false;
+                });
+                if (masterNode) {
+                    masterNode.setAttribute('aria-checked', 'false');
+                    masterNode.textContent = 'Select/deselect all';
+                }
+            });
+        }
+    </script>
+
+</div>
+
+

@@ -1,0 +1,80 @@
+        <!-- form needs these data: 
+        * opportunity
+        * awardTypes
+        * eligibleStages
+        * eligibleFields
+        * eligibleNationalities
+        -->
+<div>
+    <h2>Organization:</h2><br>
+    <p id="organization_name">{{ organization[0] }}</p><br>
+    <h2>Description:</h2>
+    <p id="opportunity_description">{{ opportunity[3] }}</p><br>
+    <h2 for="opportunity_website">Website:</h2>
+    <a href="{{ opportunity[2] }}" id="opportunity_website">Visit {{ opportunity[0] }}</a> 
+</div>
+<div>
+    <h2>Eligibility criteria</h2>
+    <ul>
+        <li>Award Type:</li>
+            {% if awardTypes %}
+            <ul>
+                {% for aw in awardTypes %} 
+                <li value="{{ aw[1] }}">{{ aw[0] }}</li>
+                {% endfor %}
+            </ul>
+            {% else %} <p>Click Edit properties to edit award type</p> {% endif %}
+        <li>Stages of Study:</li>
+            {% if eligibleStages %}
+            <ul>
+                {% for s in eligibleStages %} 
+                <li value="{{ s[1] }}">{{ s[0] }}</li>
+                {% endfor %}
+            </ul>
+            {% else %} <p>Click Edit properties to add eligible stages</p> {% endif %}
+        <li>Disciplinary Fields:</li>
+            {% if eligibleFields %}
+            <ul>
+                {% for f in eligibleFields %} 
+                <li value="{{ f[1] }}">{{ f[0] }}</li>
+                {% endfor %}
+            </ul>
+            {% else %} <p>Click Edit properties to add eligible fields</p> {% endif %}
+        <li>Nationalities:</li>
+            {% if eligibleNationalities %}
+            <ul>
+                {% for n in eligibleNationalities %} 
+                <li value="{{ n[1] }}">{{ n[0] }}</li>
+                {% endfor %}
+            </ul>
+            {% else %} <p>Click Edit properties to add eligible nationalities</p> {% endif %}
+    </ul>
+</div>
+
+<div>
+    <div>
+    <label for="edit_opportunity_details">Edit opportunity:</label><br>
+        <button type="button" 
+                class="btn" 
+                id="edit_opportunity_details"
+                hx-post="/opportunity-details" 
+                hx-target="#opportunity_details" 
+                hx-swap="innerHTML"
+                hx-vals='{"opportunity_name": "{{ opportunity[0] }}", "action": "edit-opportunity-details"}'
+                hx-on:click="document.getElementById('opportunity_attributes').innerHTML = ''">
+            <img src="{{ url_for('static', filename = 'edit.svg') }}">
+        </button>
+    </div>
+    <div>
+        <label for="edit_opportunity_attributes">Edit properties:</label><br>
+        <button type="button" 
+            class="btn" 
+            id="edit_opportunity_attributes"
+            hx-get="/opportunity-attributes" 
+            hx-target="#opportunity_attributes" 
+            hx-swap="innerHTML"
+            hx-vals='{"opportunity_id": "{{ opportunity[1] }}", "action": "edit-opportunity-attributes"}'>   
+        <img src="{{ url_for('static', filename = 'icons8-edit-property-80.png') }}">
+    </button>
+    </div>
+</div>

@@ -1,0 +1,3 @@
+from dbQueries import list_interdepartmental_programs, get_program_name_by_id
+
+print(get_program_name_by_id(27))

@@ -1,0 +1,82 @@
+* { box-sizing: border-box; }
+/* Base styles (Mobile First) */
+body {
+    font-family: 'Arial', sans-serif; /* Web-safe alternative for Univers */
+    color: #333;
+    padding: 1rem;
+}
+
+.container {
+    max-width: 800px; /* Limits the width for desktops */
+    margin: 0 auto; /* Centers the entire container */
+    padding: 20px;
+}
+
+h1 {
+    text-align: left; /* Keep your preferred alignment */
+    color: #C8102E; /* Cardinal */
+}
+
+/* Make forms usable on touch screens */
+input, select, textarea, button {
+    width: 100%; /* Full width on mobile */
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+}
+
+/* Tablet and Desktop adjustments */
+@media (min-width: 768px) {
+    /* When screen is wider than 768px, shrink the form */
+    form input:not(.select2-search__field),
+    form select,
+    form textarea,
+    form button {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc
+    }
+    form {
+        max-width: 600px;
+        margin: 0 auto; /* Center the form */
+    }
+
+}
+
+/* Let Select2 */
+.select2-container {
+    width: 100% !important; /* Forces it to respect the parent container width */
+    margin-bottom: 15px;
+}
+
+.select2-container .select2-selection--single .select2-selection__rendered {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 20px;
+    botton: 0;
+}
+
+.select2-selection__clear {
+    
+}
+
+
+
+/* Reset buttons so they don't stretch to full screen */
+.btn {
+    width: auto;      /* Prevents full-width stretch */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    height: 50px;     /* Set a fixed, consistent height */
+    box-sizing: border-box;
+}
+
+/* Ensure the icons inside the buttons don't blow out the height */
+.btn img {
+    height: 100%;     /* Icon scales to fit button height */
+    width: auto;
+}

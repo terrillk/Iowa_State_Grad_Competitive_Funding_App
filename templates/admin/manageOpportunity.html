@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="{{ url_for('static', filename = 'jquery-4.0.0.min.js') }}"></script>
+        <script src="{{ url_for('static', filename = 'select2.min.js') }}"></script>
+        <link href="{{ url_for('static', filename='select2.min.css') }}" rel="stylesheet">
+        <script src="{{ url_for('static', filename = 'htmx.min.js') }}"></script>
+        <script src="{{ url_for('static', filename = 'CheckboxMixed.js') }}" defer></script>
+        <link rel="stylesheet" href="{{ url_for('static', filename = 'checkbox-mixed.css') }}">
+        <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+        <title>Manage Funding Opportunities</title>
+    </head>
+    <body>
+        <main class="container">
+            <!-- form needs these data: 
+            * opportunities
+            -->
+            <h1>Manage Funding Opportunities</h1>        
+            <form action="/manage-opportunity" method="POST">
+                <label for="opportunity_name">Opportunity Name:</label><br>
+                <select style="width: 50%"
+                        id="opportunity_name"
+                        name="opportunity_name"
+                        class="select2" 
+                        data-tags="true"
+                        hx-get="/opportunity-details"   
+                        hx-target="#opportunity_details"                    
+                        > <!-- hx-get calls the get_opportunity_details route; hx-target specifies that the response from the get_opportunity_details route should be inserted into the element with id opportunity_details -->
+                        <option ></option>
+                        {% for opportunity in opportunities %} 
+                        <option value="{{ opportunity[0] }}">
+                            {{ opportunity[0] }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </form>
+            <div id="opportunity_details"></div>
+            <div id="opportunity_attributes" hx-on:clear-attributes-form="this.innerHTML=''"></div>
+        </main>
+
+
+        <script>
+            $(".select2").select2({
+                placeholder: "Enter the opportunity title",
+                allowClear: true
+            });
+            $('#opportunity_name').on('select2:select', function() {
+                this.dispatchEvent(new Event('change'));
+                document.getElementById('opportunity_attributes').innerHTML = '';
+            });
+        </script>
+    </body>
+</html>
