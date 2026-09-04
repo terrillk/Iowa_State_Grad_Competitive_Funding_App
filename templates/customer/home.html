@@ -1,11 +1,79 @@
-<DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="{{ url_for('static', filename = 'htmx.min.js') }}"></script>        
+        <script src="{{ url_for('static', filename = 'CheckboxMixed.js') }}" defer></script>
+        <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+        <link rel="stylesheet" href="{{ url_for('static', filename = 'checkbox-mixed.css') }}">
         <title>Customer Home</title>
-        <h1>Welcome to the Competitive Funding Database</h1>
     </head>
-    <body>        
-        <p>As a customer, you can view the available funding opportunities and their details. Please navigate to the appropriate sections to explore the funding options.</p>
+    <body>
+        <main class="container">
+            <h1>Welcome to the Competitive Funding Database</h1>
+            <h2>Explore Competitive Funding Opportunities for Graduate Students</h2>
+            <p>Use this tool to search and filter funding opportunities based on your criteria.</p>
+
+            <!-- Search bar: input + award type filter + submit, all in one row, button on the right -->
+            <!-- form needs these data:
+                * allAwardTypes
+            -->
+            <div class="search-tools-container">
+                <form
+                    action="/opportunity-search-results"
+                    method="POST"
+                    id="opportunitySearchForm"
+                    hx-post="/opportunity-search-results"
+                    hx-target="#opportunity_search_results"
+                    hx-swap="innerHTML">
+                    <label for="opportunity_search_term" class="search-label">Enter opportunity search term:</label>
+                    <div class="search-bar-group">
+                        <!-- Main Search Input-->
+                        <input
+                            type="text"
+                            id="opportunity_search_term"
+                            name="opportunitySearchTerm"
+                            placeholder="Your next opportunity...."
+                            aria-label="Search query"
+                            class="search-input"
+                        >
+                        <!-- Award Type / Filter Dropdown -->
+                        <select name="awardType" 
+                            aria-label="Select award type" 
+                            class="search-filter-select">
+                            <option value="all" selected>All Award Types</option>
+                            {% for awardType in allAwardTypes %}
+                            <option value="{{ awardType[1] }}">{{ awardType[0] }}</option>
+                            {% endfor %}
+                        </select>
+                        <!-- Search Submit Button -->
+                        <button type="submit" class="search-submit-btn" aria-label="Submit search">
+                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="dashboard-layout">    
+                <div id="opportunity_search_results" class="results-area">
+                    <!-- Search results will be dynamically loaded here via htmx -->
+                </div>
+                <!-- Filters panel: sticky sidebar on desktop, collapsible hamburger accordion on narrow screens -->
+                <aside class="filters-sidebar" id="filters_sidebar">
+                    <details class="mobile-filter-accordion">
+                        <summary class="filter-toggle-btn">
+                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                                <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2z"/>
+                            </svg>
+                            <span>Filter Opportunities</span>
+                        </summary>
+                        <div id="opportunity_search_filters"></div>
+                    </details>
+                </aside>
+            </div>
+        </main>
     </body>
 </html>

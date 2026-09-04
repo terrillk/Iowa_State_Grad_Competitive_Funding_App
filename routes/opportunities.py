@@ -3,7 +3,7 @@ from flask import app, render_template, request, redirect, make_response
 import os
 from dotenv import load_dotenv
 import mysql.connector
-
+from werkzeug.utils import secure_filename
 
 load_dotenv() # load environment variables from .env file
 
@@ -82,23 +82,23 @@ def init_opportunity_details_route(app):
         eligibleFields = []
         eligibleNationalities = []
 
-        awardTypeIDs = [int(row[0]) for row in find_joined_attributes(mycursor, current_opportunity[1], 'awardtype')]
-        for id in awardTypeIDs:
-            mycursor.execute("SELECT name FROM awardtype WHERE id = %s", (id,))
-            awardTypes.append(mycursor.fetchone())
-        print("These are the awardTypes for staticOpportunity: ", awardTypes)
-        eligibleStageIDs = [int(row[0]) for row in find_joined_attributes(mycursor, current_opportunity[1], 'stage')]
-        for id in eligibleStageIDs:
-            mycursor.execute("SELECT name FROM stage WHERE id = %s", (id,))
-            eligibleStages.append(mycursor.fetchone())
-        eligibleFieldIDs = [int(row[0]) for row in find_joined_attributes(mycursor, current_opportunity[1], 'field')]
-        for id in eligibleFieldIDs:
-            mycursor.execute("SELECT name FROM field WHERE id = %s", (id,))
-            eligibleFields.append(mycursor.fetchone())
-        eligibleNationalityIDs = [int(row[0]) for row in find_joined_attributes(mycursor, current_opportunity[1], 'nationality')]
-        for id in eligibleNationalityIDs:
-            mycursor.execute("SELECT name FROM nationality WHERE id = %s", (id,))
-            eligibleNationalities.append(mycursor.fetchone())
+        if current_opportunity:
+            awardTypeIDs = [int(row[0]) for row in find_joined_attributes(mycursor, current_opportunity[1], 'awardtype')]
+            for id in awardTypeIDs:
+                mycursor.execute("SELECT name FROM awardtype WHERE id = %s", (id,))
+                awardTypes.append(mycursor.fetchone())
+            eligibleStageIDs = [int(row[0]) for row in find_joined_attributes(mycursor, current_opportunity[1], 'stage')]
+            for id in eligibleStageIDs:
+                mycursor.execute("SELECT name FROM stage WHERE id = %s", (id,))
+                eligibleStages.append(mycursor.fetchone())
+            eligibleFieldIDs = [int(row[0]) for row in find_joined_attributes(mycursor, current_opportunity[1], 'field')]
+            for id in eligibleFieldIDs:
+                mycursor.execute("SELECT name FROM field WHERE id = %s", (id,))
+                eligibleFields.append(mycursor.fetchone())
+            eligibleNationalityIDs = [int(row[0]) for row in find_joined_attributes(mycursor, current_opportunity[1], 'nationality')]
+            for id in eligibleNationalityIDs:
+                mycursor.execute("SELECT name FROM nationality WHERE id = %s", (id,))
+                eligibleNationalities.append(mycursor.fetchone())
 
 
         action = request.values.get('action')
@@ -129,10 +129,39 @@ def init_opportunity_details_route(app):
             organizations = mycursor.fetchall()
             organization = request.values.get('organization_name')
             mycursor.execute("SELECT * FROM organization WHERE name = %s", (organization,))
-            existing_organization = mycursor.fetchone()
-            if existing_organization == None:
-                mycursor.execute("INSERT INTO organization(name) VALUES (%s)", (organization,)) # add the new organization into the organization table if it's not already there
-                conn.commit()
+            existing_organization = mycursor.fetchone()            
+            #add a logo file path to the organization if a logo file gets uploaded
+            logo = request.files.get('logo')
+            relative_path = None
+            if logo and logo.filename != '':
+                filename = secure_filename(logo.filename)
+                logo_folder = os.path.join('static', 'uploads', 'organizationLogos')
+                os.makedirs(logo_folder, exist_ok=True)  # Create the directory if it doesn't exist
+                logo_path = os.path.join(logo_folder, filename)
+                logo.save(logo_path)
+                relative_path = os.path.relpath(logo_path, start='static')  # Get the relative path from the 'static' folder    
+                relative_path = relative_path.replace("\\", "/")  # Replace backslashes with forward slashes for web compatibility
+                # Save the logo file and store its path in the organization record
+                try:
+                    mycursor.execute("SELECT * FROM organization WHERE name = %s", (organization,))
+                    current_organization = mycursor.fetchone()
+                    if existing_organization == None:
+                        mycursor.execute("INSERT INTO organization(name, logopath) VALUES (%s, %s)", (organization, relative_path)) # add the new organization into the organization table if it's not already there
+                        conn.commit()
+                    else:
+                        mycursor.execute("UPDATE organization SET logopath = %s WHERE name = %s", (relative_path, organization)) # update the logo path for the existing organization
+                        conn.commit()
+                except mysql.connector.Error as err:
+                    print(f"Error updating organization logo path: {err}")
+            else:
+                if existing_organization == None:
+                    mycursor.execute("INSERT INTO organization(name) VALUES (%s)", (organization,))
+                    conn.commit()
+                    mycursor.execute("SELECT * FROM organization WHERE name = %s", (organization,))
+                    current_organization = mycursor.fetchone()
+                else:
+                    current_organization = existing_organization
+
             description = request.form.get('opportunity_description')
             website = sanitize_url(request.form.get('website_url'))
             mycursor.execute("SELECT * FROM organization WHERE name = %s", (organization,))
@@ -178,6 +207,7 @@ def init_opportunity_details_route(app):
                                    eligibleStages=eligibleStages,
                                    eligibleFields=eligibleFields,
                                    eligibleNationalities=eligibleNationalities)
+
 
 def add_relationship(cursor, table1, table2, id1, id2):
     """
@@ -273,11 +303,11 @@ def init_opportunity_attributes_route(app):
             response.headers['HX-Trigger-After-Swap'] = 'clear-attributes-form'
             return response
             
-        mycursor.execute("SELECT * FROM awardtype")
+        mycursor.execute("SELECT * FROM awardtype ORDER BY name ASC")
         allAwardTypes = mycursor.fetchall()
         mycursor.execute("SELECT * FROM stage")
         allStages = mycursor.fetchall()
-        mycursor.execute("SELECT * FROM field")
+        mycursor.execute("SELECT * FROM field ORDER BY name ASC")
         allFields = mycursor.fetchall()
         mycursor.execute("SELECT * FROM nationality")
         allNationalities = mycursor.fetchall()
@@ -304,3 +334,4 @@ def init_opportunity_attributes_route(app):
                                joinedStages=joinedStages,
                                joinedFields=joinedFields,
                                joinedNationalities=joinedNationalities)
+

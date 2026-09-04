@@ -1,0 +1,137 @@
+<div id="opportunity_search_filters"
+    hx-swap-oob="true">
+    <!-- Filter Form -->
+    <form id="opportunityFilterAttributes">
+        <!-- send the opportunity ID to the server with the attribute data -->
+        <input type="hidden" name="opportunity_id" value="{{ opportunity_id }}">
+        <!-- Award Type fieldset-->
+        <fieldset class="checkbox-mixed">
+            <legend>Award Type (Select all that apply)</legend>
+            <div role="checkbox"
+                class="group_checkbox"
+                aria-checked="mixed"
+                aria-controls="{% for a in awardTypes %}awardType-{{ a[1] }} {% endfor %}"
+                tabindex="0">
+                Select/deselect all
+            </div><br>
+            {% for awardType in allAwardTypes %}
+            <input type="checkbox"
+                name="awardType"
+                value="{{ awardType[1] }}"
+                id="awardtype-{{ awardType[1] }}"
+                {% if awardType[1] in filteredAwardTypes %} checked {% endif %}
+            >
+            <label for="awardtype-{{ awardType[1] }}">{{ awardType[0] }}</label><br>
+            {% endfor %}
+        </fieldset>
+        <!-- Stage of Study fieldset-->
+        <fieldset class="checkbox-mixed">
+            <legend>Stage of Study (Select all that apply)</legend>
+            <div role="checkbox"
+                class="group_checkbox"
+                aria-checked="mixed"
+                aria-controls="{% for s in stages %}stage-{{ s[1] }} {% endfor %}"
+                tabindex="0">
+                Select/deselect all
+            </div><br>
+            {% for stage in allStages %}
+            <input type="checkbox"
+                name="stage"
+                value="{{ stage[1] }}"
+                id="stage-{{ stage[1] }}"
+                {% if stage[1] in filteredStages %} checked {% endif %}
+            >
+            <label for="stage-{{ stage[1] }}">{{ stage[0] }}</label><br>
+            {% endfor %}
+        </fieldset>
+        <!-- Disciplinary Field fieldset-->
+        <fieldset class="checkbox-mixed">
+            <legend>Disciplinary Field (Select all that apply)</legend>
+            <div role="checkbox"
+                class="group_checkbox"
+                aria-checked="mixed"
+                aria-controls="{% for f in fields %}field-{{ f[1] }} {% endfor %}"
+                tabindex="0">
+                Select/deselect all
+            </div><br>
+            {% for field in allFields %}
+            <input type="checkbox"
+                name="field"
+                value="{{ field[1] }}"
+                id="field-{{ field[1] }}"
+                {% if field[1] in filteredFields %} checked {% endif %}
+            >
+            <label for="field-{{ field[1] }}">{{ field[0] }}</label><br>
+            {% endfor %}
+        </fieldset>
+        <!-- Nationality fieldset-->
+        <fieldset class="checkbox-mixed">
+            <legend>Nationality (Select all that apply)</legend>
+            <div role="checkbox"
+                class="group_checkbox"
+                aria-checked="mixed"
+                aria-controls="{% for n in nationalities %}nationality-{{ n[1] }} {% endfor %}"
+                tabindex="0">
+                Select/deselect all
+            </div><br>
+            {% for nationality in allNationalities %}
+            <input type="checkbox"
+                name="nationality"
+                value="{{ nationality[1] }}"
+                id="nationality-{{ nationality[1] }}"
+                {% if nationality[1] in filteredNationalities %} checked {% endif %}
+            >
+            <label for="nationality-{{ nationality[1] }}">{{ nationality[0] }}</label><br>
+            {% endfor %}
+        </fieldset>
+        <button type="submit"
+            id="applyFiltersBtn"
+            hx-include="#opportunitySearchForm"
+            hx-post="/opportunity-search-results"
+            hx-target="#opportunity_search_results"
+            hx-swap="innerHTML">
+            Apply filters</button>
+        <button type="button" onclick="clearAllAttributes()">Clear filters</button> <!-- clear form just blanks out the values in each area -->
+    </form>
+    <script>
+        // The filter panel is a native <details>/<summary> accordion so it works
+        // as a collapsible hamburger menu on narrow screens. On wider screens we
+        // want it always expanded and acting like a plain sidebar. Native <details>
+        // hides all of its content except <summary> whenever the "open" attribute
+        // is absent, and that hidden state isn't reliably overridable with CSS
+        // alone across browsers - so we set/remove the "open" attribute directly
+        // based on viewport width instead.
+        (function () {
+            var accordion = document.querySelector('.mobile-filter-accordion');
+            if (!accordion) return;
+            var desktopQuery = window.matchMedia('(min-width: 600px)');
+
+            function syncOpenState(query) {
+                if (query.matches) {
+                    accordion.setAttribute('open', '');
+                } else {
+                    accordion.removeAttribute('open');
+                }
+            }
+
+            syncOpenState(desktopQuery);
+            desktopQuery.addEventListener('change', syncOpenState);
+        })();
+        function clearAllAttributes() {
+            const fieldsets = document.querySelectorAll('.checkbox-mixed');
+            fieldsets.forEach(fieldset => {
+                const checkboxes = fieldset.querySelectorAll('input[type="checkbox"]');
+                const masterNode = fieldset.querySelector('[role="checkbox"]');
+
+                checkboxes.forEach(cb => {
+                    cb.checked = false;
+                });
+                if (masterNode) {
+                    masterNode.setAttribute('aria-checked', 'false');
+                    masterNode.textContent = 'Select/deselect all';
+                }                
+            })
+            document.getElementById('applyFiltersBtn').click(); // Trigger the Apply Filters button click to refresh results
+        }
+    </script>
+</div>

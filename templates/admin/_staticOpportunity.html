@@ -50,8 +50,20 @@
             {% else %} <p>Click Edit properties to add eligible nationalities</p> {% endif %}
     </ul>
 </div>
-
-<div>
+<h2>Actions</h2>
+<div class="opportunity-detail-choices">
+    <div>
+        <label for="edit_opportunity_attributes">Edit properties:</label><br>
+        <button type="button" 
+            class="btn" 
+            id="edit_opportunity_attributes"
+            hx-get="/opportunity-attributes" 
+            hx-target="#opportunity_attributes" 
+            hx-swap="innerHTML"
+            hx-vals='{"opportunity_id": "{{ opportunity[1] }}", "action": "edit-opportunity-attributes"}'>   
+        <img src="{{ url_for('static', filename = 'icons8-edit-property-80.png') }}">
+        </button>
+    </div>
     <div>
     <label for="edit_opportunity_details">Edit opportunity:</label><br>
         <button type="button" 
@@ -66,15 +78,12 @@
         </button>
     </div>
     <div>
-        <label for="edit_opportunity_attributes">Edit properties:</label><br>
+        <label for="add-another-opportunity">Add another opportunity:</label><br>
         <button type="button" 
-            class="btn" 
-            id="edit_opportunity_attributes"
-            hx-get="/opportunity-attributes" 
-            hx-target="#opportunity_attributes" 
-            hx-swap="innerHTML"
-            hx-vals='{"opportunity_id": "{{ opportunity[1] }}", "action": "edit-opportunity-attributes"}'>   
-        <img src="{{ url_for('static', filename = 'icons8-edit-property-80.png') }}">
-    </button>
-    </div>
+                class="btn" 
+                id="add_another_opportunity"
+                onclick="document.getElementById('opportunity_details').innerHTML = '';
+                document.getElementById('opportunity_name').tomselect.clear(true);">
+            <img src="{{ url_for('static', filename = 'add.png') }}">
+        </button>
 </div>

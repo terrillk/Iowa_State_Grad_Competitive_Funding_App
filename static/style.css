@@ -1,82 +1,438 @@
+/* Competitive Funding_new style.css */
+
 * { box-sizing: border-box; }
+
+/* ---------------------------------------
+   Tokens
+--------------------------------------- */
+:root {
+	--cardinal: #C8102E;
+	--cardinal-dark: #A50D26;
+	--ink: #2B2622;
+	--muted: #6B6560;
+	--bg: #F7F5F2;
+	--card-bg: #FFFFFF;
+	--border: #E4DFD8;
+	--badge-bg: #FCEBE3;
+	--badge-text: #9A3412;
+	--radius-lg: 16px;
+	--radius-pill: 999px;
+}
+
 /* Base styles (Mobile First) */
 body {
-    font-family: 'Arial', sans-serif; /* Web-safe alternative for Univers */
-    color: #333;
-    padding: 1rem;
+	font-family: 'Arial', sans-serif; /* Web-safe alternative for Univers */
+	color: var(--ink);
+	background: var(--bg);
+	padding: 1rem;
 }
 
 .container {
-    max-width: 800px; /* Limits the width for desktops */
-    margin: 0 auto; /* Centers the entire container */
-    padding: 20px;
+	max-width: 1100px; /* Limits the width for desktops */
+	margin: 0 auto; /* Centers the entire container */
+	padding: 20px;
 }
 
 h1 {
-    text-align: left; /* Keep your preferred alignment */
-    color: #C8102E; /* Cardinal */
+	text-align: left; /* Keep your preferred alignment */
+	color: var(--cardinal); /* Cardinal */
+	margin-bottom: 0.25rem;
 }
 
-/* Make forms usable on touch screens */
-input, select, textarea, button {
-    width: 100%; /* Full width on mobile */
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
+h2 {
+	font-size: 1.1rem;
+	font-weight: 600;
+	color: var(--muted);
+	margin-top: 0;
 }
 
-/* Tablet and Desktop adjustments */
-@media (min-width: 768px) {
-    /* When screen is wider than 768px, shrink the form */
-    form input:not(.select2-search__field),
-    form select,
-    form textarea,
-    form button {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 15px;
-        border: 1px solid #ccc
-    }
-    form {
-        max-width: 600px;
-        margin: 0 auto; /* Center the form */
-    }
-
+/* ---------------------------------------
+   Search bar (input + award-type filter + submit button, one row)
+--------------------------------------- */
+.search-tools-container {
+	margin: 1.25rem 0 1.5rem;
 }
 
-/* Let Select2 */
-.select2-container {
-    width: 100% !important; /* Forces it to respect the parent container width */
-    margin-bottom: 15px;
+.search-label {
+	display: block;
+	font-size: 0.85rem;
+	color: var(--muted);
+	margin-bottom: 6px;
 }
 
-.select2-container .select2-selection--single .select2-selection__rendered {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 20px;
-    botton: 0;
+.search-bar-group {
+	display: flex;
+	flex-direction: row;
+	align-items: stretch;
+	width: 100%;
+	border: 2px solid var(--cardinal);
+	border-radius: var(--radius-pill);
+	background: var(--card-bg);
+	overflow: hidden; /* keeps the pill shape clean even though button is a sibling element */
 }
 
-.select2-selection__clear {
-    
+.search-input {
+	flex: 1 1 auto;
+	min-width: 0; /* allow shrinking below content size on narrow screens */
+	border: none;
+	padding: 12px 16px;
+	font-size: 1rem;
+	background: transparent;
 }
 
+.search-input:focus {
+	outline: 2px solid var(--cardinal-dark);
+	outline-offset: -2px;
+}
 
+.search-filter-select {
+	flex: 0 1 auto;
+	border: none;
+	border-left: 1px solid var(--border);
+	padding: 12px 14px;
+	background: transparent;
+	font-size: 0.95rem;
+	max-width: 45%;
+}
 
-/* Reset buttons so they don't stretch to full screen */
+/* Submit button sits at the far right of the bar */
+.search-submit-btn {
+	order: 3;
+	flex-shrink: 0;
+	background-color: var(--cardinal);
+	color: white;
+	border: none;
+	padding: 0 20px;
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	transition: background-color 0.15s ease;
+}
+
+.search-submit-btn:hover,
+.search-submit-btn:focus-visible {
+	background-color: var(--cardinal-dark);
+}
+
+/* ---------------------------------------
+   Dashboard layout: results on the left, filter panel on the right
+--------------------------------------- */
+.dashboard-layout {
+	display: flex;
+	flex-direction: row;
+    flex: 1 1 auto;
+	align-items: flex-start;
+	gap: 24px;
+}
+
+.results-area {
+	order: 1;
+	flex: 1 0 0px; /* flex-grow: 1, flex-shrink: 0, flex-basis: 0px */
+	min-width: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Non-scrolling filter panel: sticks in place while the results scroll past it */
+.filters-sidebar {
+	display: none; /* hidden by default, shown after initial search executed */
+    order: 2;
+	flex: 0 0 280px;
+	position: sticky;
+	top: 20px;
+	align-self: flex-start;
+	max-height: calc(100vh - 40px);
+	overflow-y: auto;
+	background: var(--card-bg);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	padding: 4px;
+}
+
+/* A class to make it visible once search results are returned */
+.filters-sidebar.visible {
+    display: block;
+}
+
+/* On desktop the <details> panel is kept expanded via JS (setting the "open"
+   attribute based on viewport width - see the script at the bottom of the page),
+   so it reads as a plain, always-visible filter sidebar. The toggle button itself
+   is only meaningful on mobile, so it's hidden here. */
+.filter-toggle-btn {
+	display: none;
+}
+
+.mobile-filter-accordion #opportunityFilterAttributes {
+	padding: 16px 18px 18px;
+}
+
+.checkbox-mixed {
+	border: none;
+	border-top: 1px solid var(--border);
+	padding: 12px 0;
+	margin: 0;
+}
+
+.checkbox-mixed:first-of-type {
+	border-top: none;
+}
+
+.checkbox-mixed legend {
+	font-weight: 600;
+	font-size: 0.9rem;
+	color: var(--ink);
+	padding: 0;
+}
+
+#opportunityFilterAttributes button[type="submit"] {
+	background-color: var(--cardinal);
+	color: white;
+	border: none;
+	border-radius: var(--radius-pill);
+	padding: 10px 18px;
+	margin-top: 8px;
+	margin-right: 8px;
+	cursor: pointer;
+}
+
+#opportunityFilterAttributes button[type="button"] {
+	background: transparent;
+	color: var(--muted);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-pill);
+	padding: 10px 18px;
+	margin-top: 8px;
+	cursor: pointer;
+}
+
+/* ---------------------------------------
+   Result cards ("store shelf" look)
+--------------------------------------- */
+.opportunity-search-results {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.opportunity {
+	display: flex;
+	flex-direction: row;
+	align-items: flex-start;
+    width: 100%;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	padding: 16px;
+	background-color: var(--card-bg);
+	box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+	transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.opportunity:hover {
+	box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+	transform: translateY(-2px);
+}
+
+.funding-agency-logo-container {
+	flex: 0 0 100px;
+	max-width: 100px;
+	max-height: 70px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-right: 15px;
+}
+
+.organization-logo {
+	max-width: 100%;
+	max-height: 70px;
+	object-fit: contain;
+}
+
+.no-logo {
+	width: 100%;
+	height: 60px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	font-size: 0.75rem;
+	color: var(--muted);
+	background: var(--bg);
+	border-radius: 8px;
+	padding: 4px;
+}
+
+.opportunity-details {
+	flex: 1 1 0;
+	min-width: 0;
+}
+
+.opportunity-details h3 {
+	margin: 4px 0 4px;
+	font-size: 1.05rem;
+}
+
+.award-type-badge {
+	display: inline-block;
+	background: var(--badge-bg);
+	color: var(--badge-text);
+	font-size: 0.72rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	padding: 3px 10px;
+	border-radius: var(--radius-pill);
+}
+
+.funding-agency {
+	color: var(--muted);
+	margin: 4px 0 10px;
+}
+
+.view-details-btn {
+	display: inline-block;
+	color: var(--cardinal);
+	border: 1.5px solid var(--cardinal);
+	border-radius: var(--radius-pill);
+	padding: 6px 16px;
+	font-size: 0.85rem;
+	font-weight: 600;
+	text-decoration: none;
+	transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.view-details-btn:hover,
+.view-details-btn:focus-visible {
+	background-color: var(--cardinal);
+	color: white;
+}
+
+/* ---------------------------------------
+   Specific / legacy classes retained
+--------------------------------------- */
+.ts-control {
+	width: 100% !important; /* Ensure Tom Select always fills the container */
+	padding: 10px;
+	margin-bottom: 15px;
+	border: 1px solid var(--cardinal);
+}
+
+select.tomselected, select[data-selectable]:not(.search-input) {
+	display: none;
+}
+
+.easy-tap-button-container {
+	display: flex;
+	align-items: center;	/* Center the buttons vertically */
+	justify-content: center;	/* Center the buttons horizontally */
+	width: 100%;	/* Ensure the container takes full width */
+	max-width: 80px; /* Optional: limit the maximum width */
+	height: 50px;	/* Optional: set a fixed height */
+	gap: 10px; /* space between buttons */
+	margin-top: 10px; /* Space above the button container */
+}
+
+.opportunity-detail-choices {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    gap: 10px;
+}
+
+/* .btn is used for two buttons on the Opportunity Data Entry, which have icons instead of text labels */
 .btn {
-    width: auto;      /* Prevents full-width stretch */
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 20px;
-    height: 50px;     /* Set a fixed, consistent height */
-    box-sizing: border-box;
+	width: auto; /* Prevents full-width stretch */
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 10px 20px;
+	height: 50px;	/* Set a fixed, consistent height */
+	box-sizing: border-box;
 }
 
 /* Ensure the icons inside the buttons don't blow out the height */
 .btn img {
-    height: 100%;     /* Icon scales to fit button height */
-    width: auto;
+	height: 100%;	/* Icon scales to fit button height */
+	width: auto;
+}
+
+/* ---------------------------------------
+   Responsive breakpoints
+--------------------------------------- */
+
+/* Anything narrower than 600px: filter panel becomes a hamburger-style
+   collapsible button that sits above the results, and cards go vertical */
+@media (max-width: 599px) {
+
+	.dashboard-layout {
+		flex-direction: column;
+	}
+
+	.filters-sidebar {
+		order: -1; /* filter toggle appears above the result cards */
+		position: static;
+		max-height: none;
+		overflow: visible;
+		flex-basis: auto;
+		width: 100%;
+		margin-bottom: 8px;
+	}
+
+	.filter-toggle-btn {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		list-style: none;
+		cursor: pointer;
+		background-color: var(--cardinal);
+		color: white;
+		border-radius: var(--radius-pill);
+		padding: 12px 18px;
+		font-weight: 600;
+		width: 100%;
+	}
+
+	.filter-toggle-btn::-webkit-details-marker {
+		display: none;
+	}
+
+	.mobile-filter-accordion #opportunityFilterAttributes {
+		padding: 16px 4px 4px;
+	}
+
+	.opportunity {
+		flex-direction: column; /* flip cards to vertical on small screens */
+		align-items: stretch;
+	}
+
+	.funding-agency-logo-container {
+		flex: 0 0 auto;
+		max-width: 100%;
+		width: 100%;
+		height: 80px;
+		margin-right: 0;
+		margin-bottom: 10px;
+	}
+
+	.search-filter-select {
+		max-width: 40%;
+	}
+}
+
+/* Medium devices, e.g. landscape tablets */
+@media (min-width: 768px) {
+
+}
+
+/* Large devices, e.g., laptops & small monitors */
+@media (min-width: 992px) {
+
+}
+
+/* Small computers, e.g., large laptops and desktop monitors */
+@media (min-width: 1200px) {
+
 }

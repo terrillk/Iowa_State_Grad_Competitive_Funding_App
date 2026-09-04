@@ -1,0 +1,27 @@
+<div>
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <!-- opportunity_search_results div needs these data:
+        *opportunities, including name, funding agency, funding agency logo, award type, and website
+    -->
+    {% if opportunities %}
+        {% for opportunity in opportunities %}
+            <div class="opportunity">
+                <div class="funding-agency-logo-container">
+                    {% if opportunity.funding_agency_logo and opportunity.funding_agency_logo != 'Unknown' %}
+                        <img src="{{ url_for('static', filename=opportunity.funding_agency_logo) }}" alt="{{ opportunity.funding_agency }} logo" class="organization-logo" >
+                    {% else %}
+                        <div class="no-logo">No Logo Available</div>
+                    {% endif %}
+                </div>
+                <div class="opportunity-details">
+                    <span class="award-type-badge">{{ opportunity.award_type }}</span>
+                    <h3>{{ opportunity.name }}</h3>
+                    <p class="funding-agency">{{ opportunity.funding_agency }}</p>
+                    <a href="{{ opportunity.website }}" target="_blank" class="view-details-btn">View Details</a>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No matching opportunities found. Try broadening your search criteria.</p>
+    {% endif %}
+</div>
