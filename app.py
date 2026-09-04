@@ -33,5 +33,6 @@ init_opportunity_search_results_route(app)
 
 #3 Start the server if this file is run directly
 if __name__ == '__main__': # this means that if we run this file, the Flask server will start. If we import this file into another file, the Flask server will not start.
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
     
