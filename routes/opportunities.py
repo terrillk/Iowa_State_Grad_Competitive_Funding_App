@@ -50,7 +50,7 @@ def init_manage_opportunities_route(app):
         selected_opportunity = "Select an opportunity"
         conn = get_db_connection()
         mycursor = conn.cursor()
-        opportunities = mycursor.execute("SELECT name FROM Opportunity")
+        opportunities = mycursor.execute("SELECT name FROM opportunity")
         opportunities = mycursor.fetchall() # fetchall() retrieves all rows of the query result and returns them as a list of tuples
         mycursor.close()    
         conn.close()
