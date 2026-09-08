@@ -50,7 +50,7 @@ def init_manage_opportunities_route(app):
         selected_opportunity = "Select an opportunity"
         conn = get_db_connection()
         mycursor = conn.cursor()
-        opportunities = mycursor.execute("SELECT name FROM Opportunity")
+        opportunities = mycursor.execute("SELECT name FROM opportunity")
         opportunities = mycursor.fetchall() # fetchall() retrieves all rows of the query result and returns them as a list of tuples
         mycursor.close()    
         conn.close()
@@ -127,8 +127,8 @@ def init_opportunity_details_route(app):
         if request.method == 'POST':
             mycursor.execute("SELECT * FROM organization")
             organizations = mycursor.fetchall()
-            organization = request.values.get('organization_name')
-            mycursor.execute("SELECT * FROM organization WHERE name = %s", (organization,))
+            organization_name = request.values.get('organization_name')
+            mycursor.execute("SELECT * FROM organization WHERE name = %s", (organization_name,))
             existing_organization = mycursor.fetchone()            
             #add a logo file path to the organization if a logo file gets uploaded
             logo = request.files.get('logo')
@@ -143,7 +143,7 @@ def init_opportunity_details_route(app):
                 relative_path = relative_path.replace("\\", "/")  # Replace backslashes with forward slashes for web compatibility
                 # Save the logo file and store its path in the organization record
                 try:
-                    mycursor.execute("SELECT * FROM organization WHERE name = %s", (organization,))
+                    mycursor.execute("SELECT * FROM organization WHERE name = %s", (organization_name,))
                     current_organization = mycursor.fetchone()
                     if existing_organization == None:
                         mycursor.execute("INSERT INTO organization(name, logopath) VALUES (%s, %s)", (organization, relative_path)) # add the new organization into the organization table if it's not already there
@@ -164,8 +164,6 @@ def init_opportunity_details_route(app):
 
             description = request.form.get('opportunity_description')
             website = sanitize_url(request.form.get('website_url'))
-            mycursor.execute("SELECT * FROM organization WHERE name = %s", (organization,))
-            current_organization = mycursor.fetchone()
             if current_opportunity == None:
                 mycursor.execute("INSERT INTO opportunity(name, website, description, organization_id) VALUES (%s, %s, %s, %s)", (current_opportunity_name, website, description, current_organization[1]))
                 conn.commit()
