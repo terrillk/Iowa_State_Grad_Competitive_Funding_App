@@ -146,18 +146,18 @@ def init_opportunity_details_route(app):
                     mycursor.execute("SELECT * FROM organization WHERE name = %s", (organization_name,))
                     current_organization = mycursor.fetchone()
                     if existing_organization == None:
-                        mycursor.execute("INSERT INTO organization(name, logopath) VALUES (%s, %s)", (organization, relative_path)) # add the new organization into the organization table if it's not already there
+                        mycursor.execute("INSERT INTO organization(name, logopath) VALUES (%s, %s)", (organization_name, relative_path)) # add the new organization into the organization table if it's not already there
                         conn.commit()
                     else:
-                        mycursor.execute("UPDATE organization SET logopath = %s WHERE name = %s", (relative_path, organization)) # update the logo path for the existing organization
+                        mycursor.execute("UPDATE organization SET logopath = %s WHERE name = %s", (relative_path, organization_name)) # update the logo path for the existing organization
                         conn.commit()
                 except mysql.connector.Error as err:
                     print(f"Error updating organization logo path: {err}")
             else:
                 if existing_organization == None:
-                    mycursor.execute("INSERT INTO organization(name) VALUES (%s)", (organization,))
+                    mycursor.execute("INSERT INTO organization(name) VALUES (%s)", (organization_name,))
                     conn.commit()
-                    mycursor.execute("SELECT * FROM organization WHERE name = %s", (organization,))
+                    mycursor.execute("SELECT * FROM organization WHERE name = %s", (organization_name,))
                     current_organization = mycursor.fetchone()
                 else:
                     current_organization = existing_organization
