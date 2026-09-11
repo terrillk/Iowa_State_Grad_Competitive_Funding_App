@@ -32,34 +32,34 @@ def load_search_lexicon():
     # Load award types as attribute filters
     mycursor.execute("SELECT name, id FROM awardtype")
     for at_name, at_id in mycursor.fetchall():
-        keyword_processor.add_keyword(at_name.lower(), {"type": "awardtype", "id": at_id})
+        keyword_processor.add_keyword({"type": "awardtype", "id": at_id, "val": at_name.lower()})
 
     # Load stages as attribute filters
     mycursor.execute("SELECT name, id FROM stage")
     for stage_name, stage_id in mycursor.fetchall():
-        keyword_processor.add_keyword(stage_name.lower(), {"type": "stage", "id": stage_id})
+        keyword_processor.add_keyword({"type": "stage", "id": stage_id, "val": stage_name.lower()})
 
     # Load fields as attribute filters
     mycursor.execute("SELECT name, id FROM field")
     for field_name, field_id in mycursor.fetchall():
-        keyword_processor.add_keyword(field_name.lower(), {"type": "field", "id": field_id})
+        keyword_processor.add_keyword({"type": "field", "id": field_id, "val": field_name.lower()})
 
     # Load nationalities as attribute filters
     mycursor.execute("SELECT name, id FROM nationality")
     for nationality_name, nationality_id in mycursor.fetchall():
-        keyword_processor.add_keyword(nationality_name.lower(), {"type": "nationality", "id": nationality_id})
+        keyword_processor.add_keyword({"type": "nationality", "id": nationality_id, "val": nationality_name.lower()})
 
     #Load departments as phrases
     mycursor.execute("SELECT name FROM department")
     for (department_name,) in mycursor.fetchall():
         if department_name:  # Ensure the department name is not None or empty
-            keyword_processor.add_keyword(department_name.lower(), {"type": "text_phrase", "val": department_name.lower()})
+            keyword_processor.add_keyword({"type": "text_phrase", "val": department_name.lower()})
 
     #Load programs as phrases
     mycursor.execute("SELECT name FROM program")
     for (program_name,) in mycursor.fetchall():
         if program_name:  # Ensure the program name is not None or empty
-            keyword_processor.add_keyword(program_name.lower(), {"type": "text_phrase", "val": program_name.lower()})
+            keyword_processor.add_keyword({"type": "text_phrase", "val": program_name.lower()})
 
     mycursor.close()
     conn.close()
