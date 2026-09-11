@@ -6,6 +6,7 @@ import os
 from dotenv import load_dotenv
 import mysql.connector
 import shlex
+from flashtext import KeywordProcessor
 
 from routes import opportunities
 
@@ -22,6 +23,51 @@ def get_db_connection():
         port=int(os.getenv("DB_PORT", 3306)) # Optional: Good practice to include the port, with a default value of 3306 for MySQL
    )
 
+# Set up a keyword processor for search intent tokenizing
+keyword_processor = KeywordProcessor()
+
+def load_search_lexicon():
+    conn = get_db_connection()
+    mycursor = conn.cursor(buffered=True)
+    # Load award types as attribute filters
+    mycursor.execute("SELECT name, id FROM awardtype")
+    for at_name, at_id in mycursor.fetchall():
+        keyword_processor.add_keyword(at_name.lower(), {"type": "awardtype", "id": at_id})
+
+    # Load stages as attribute filters
+    mycursor.execute("SELECT name, id FROM stage")
+    for stage_name, stage_id in mycursor.fetchall():
+        keyword_processor.add_keyword(stage_name.lower(), {"type": "stage", "id": stage_id})
+
+    # Load fields as attribute filters
+    mycursor.execute("SELECT name, id FROM field")
+    for field_name, field_id in mycursor.fetchall():
+        keyword_processor.add_keyword(field_name.lower(), {"type": "field", "id": field_id})
+
+    # Load nationalities as attribute filters
+    mycursor.execute("SELECT name, id FROM nationality")
+    for nationality_name, nationality_id in mycursor.fetchall():
+        keyword_processor.add_keyword(nationality_name.lower(), {"type": "nationality", "id": nationality_id})
+
+    #Load departments as phrases
+    mycursor.execute("SELECT name FROM department")
+    for department_name in mycursor.fetchall():
+        keyword_processor.add_keyword(department_name.lower(), {"type": "text_phrase", "id": None})
+
+    #Load programs as phrases
+    mycursor.execute("SELECT name FROM program")
+    for program_name in mycursor.fetchall():
+        keyword_processor.add_keyword(program_name.lower(), {"type": "text_phrase", "id": None})
+
+    mycursor.close()
+    conn.close()
+# call the function to load the search lexicon when the application starts
+try:
+    load_search_lexicon()  
+except Exception as e:
+    print(f"Error loading search lexicon: {e}")
+
+# Load the main page; populate filter panel with all opportunity attributes (award types, stages, fields, nationalities) and render the home page
 def init_customer_home_route(app):
     @app.route('/', methods=['GET', 'POST'])
     def customer_home():
@@ -58,61 +104,34 @@ def init_opportunity_search_results_route(app):
         # Get the search query from the form submission    
         raw_query = request.form.get('opportunitySearchTerm', '').strip()
         query_lower = raw_query.lower()
-        try:
-            search_terms = shlex.split(query_lower)  # Split the search query into individual terms, respecting quoted phrases
-        except ValueError:
-            # Handle the case where the search query has unmatched quotes
-            search_terms = query_lower.split()  # Fallback to simple split if there's a ValueError
-
-
-        # Get all the opportunity attribute lists from the database to deal with search intent parsing and to populate the filter menu
-        conn = get_db_connection()
-        mycursor = conn.cursor(buffered=True)
-        mycursor.execute("SELECT * FROM awardtype")
-        allAwardTypes = mycursor.fetchall()
-        mycursor.execute("SELECT * FROM stage")
-        allStages = mycursor.fetchall()
-        mycursor.execute("SELECT * FROM field")
-        allFields = mycursor.fetchall()
-        mycursor.execute("SELECT * FROM nationality")
-        allNationalities = mycursor.fetchall()
-        mycursor.close()
-        conn.close()
 
         # check if the filter menu has been submitted, and pull the awardtype list from there. If not, pull the awardtype list from the search form. If neither, then just do a search with no filters.
         rawAwardTypes = request.form.getlist('awardType')
         filteredAwardTypes = [int(x) for x in set(rawAwardTypes) if x and x != 'all']   # deduplicate the list of award types to avoid duplicates in the SQL query
-        filteredStages = [int(x) for x in list(set(request.form.getlist('stage')))]
-        filteredFields = [int(x) for x in list(set(request.form.getlist('field')))]
-        filteredNationalities = [int(x) for x in list(set(request.form.getlist('nationality')))]
 
-        # Parse the search intent by pulling out terms that match the award type, stage, field, and nationality
-        for term in search_terms[:]:  # Iterate over a copy of the list to avoid modifying it while iterating
-            for awardType in allAwardTypes:
-                if term == awardType[0].lower():
-                    # search_terms.remove(term)
-                    if awardType[1] not in filteredAwardTypes:
-                        filteredAwardTypes.append(awardType[1])  # Add the ID of the matched award type to the filtered list
-                    break  # Exit the inner loop once a match is found
-            for stage in allStages:
-                if term == stage[0].lower():
-                    # search_terms.remove(term)
-                    if stage[1] not in filteredStages:
-                        filteredStages.append(stage[1])  # Add the ID of the matched stage to the filtered list
-                    break
-            for field in allFields:
-                if term == field[0].lower():
-                    # search_terms.remove(term)
-                    if field[1] not in filteredFields:
-                        filteredFields.append(field[1])  # Add the ID of the matched field to the filtered list
-                    break
-            for nationality in allNationalities:
-                if term == nationality[0].lower():
-                    # search_terms.remove(term)
-                    if nationality[1] not in filteredNationalities:
-                        filteredNationalities.append(nationality[1])  # Add the ID of the matched nationality to the filtered list
-                    break
+        # Use FlashText to scan the raw query string for multi-word phrases that match known award types, stages, fields, nationalities, departments, or programs. This allows for more accurate parsing of the search intent.
+        extracted_keywords = keyword_processor.extract_keywords(query_lower, span_info=True)
+        filteredStages = []
+        filteredFields = []
+        filteredNationalities = []
+        extracted_phrases = []
 
+        for match in extracted_keywords:
+            if match["type"] == "awardtype" and match["id"] not in filteredAwardTypes:
+                filteredAwardTypes.append(match["id"])
+            elif match["type"] == "stage" and match["id"] not in filteredStages:
+                filteredStages.append(match["id"])
+            elif match["type"] == "field" and match["id"] not in filteredFields:
+                filteredFields.append(match["id"])
+            elif match["type"] == "nationality" and match["id"] not in filteredNationalities:
+                filteredNationalities.append(match["id"])
+            elif match["type"] == "text_phrase":
+                extracted_phrases.append(match["keyword"])
+
+        # Build a Boolean search payload for MySQL
+        # If FlashText catches a program name like "computer science", wrap it in quotes.
+        boolean_search_terms = [query_lower] + [f'"{phrase}"' for phrase in extracted_phrases]
+        boolean_search_payload = ' '.join(boolean_search_terms)
 
 
 
@@ -139,9 +158,9 @@ def init_opportunity_search_results_route(app):
                     LEFT JOIN awardtypeopportunity ato ON o.id = ato.opportunity_id
                     LEFT JOIN awardtype at ON ato.awardtype_id = at.id
                     WHERE (
-                        MATCH(o.name) AGAINST (%s IN NATURAL LANGUAGE MODE) OR
-                        MATCH(o.description) AGAINST (%s IN NATURAL LANGUAGE MODE) OR
-                        MATCH(org.name) AGAINST (%s IN NATURAL LANGUAGE MODE))
+                        MATCH(o.name) AGAINST (%s IN BOOLEAN MODE) OR
+                        MATCH(o.description) AGAINST (%s IN BOOLEAN MODE) OR
+                        MATCH(org.name) AGAINST (%s IN BOOLEAN MODE))
                     
                         """
 
@@ -182,8 +201,35 @@ def init_opportunity_search_results_route(app):
                 # print("FILTERED NATIONALITIES:", filteredNationalities)  # Debugging line to print the filtered nationalities
 
 
-                mycursor.execute(query, (query_lower, query_lower, query_lower, *filteredAwardTypes, *filteredStages, *filteredFields, *filteredNationalities))
+                mycursor.execute(query, (boolean_search_payload, boolean_search_payload, boolean_search_payload, *filteredAwardTypes, *filteredStages, *filteredFields, *filteredNationalities))
                 matches = mycursor.fetchall()
+
+                # Add a zero-results safety net (fallback in case search terms don't deliver any results)
+                is_relaxed_search = False
+                if not matches and (filteredAwardTypes or filteredStages or filteredFields or filteredNationalities):
+                    is_relaxed_search = True
+                    relaxed_query = """
+                        SELECT
+                            o.id,
+                            o.name,
+                            o.website,
+                            org.name AS funding_agency,
+                            org.logopath AS funding_agency_logo,
+                            GROUP_CONCAT(DISTINCT at.name SEPARATOR ', ')  AS award_type
+                        FROM opportunity o
+                        LEFT JOIN organization org ON o.organization_id = org.id
+                        LEFT JOIN awardtypeopportunity ato ON o.id = ato.opportunity_id
+                        LEFT JOIN awardtype at ON ato.awardtype_id = at.id
+                        WHERE (
+                            MATCH(o.name) AGAINST (%s IN BOOLEAN MODE) OR
+                            MATCH(o.description) AGAINST (%s IN BOOLEAN MODE) OR
+                            MATCH(org.name) AGAINST (%s IN BOOLEAN MODE))
+                        GROUP BY o.id, o.name, o.website, org.name, org.logopath
+                    """
+                    mycursor.execute(relaxed_query, (boolean_search_payload, boolean_search_payload, boolean_search_payload))
+                    matches = mycursor.fetchall()
+
+
                 try:
                     mycursor.close()
                 except:
