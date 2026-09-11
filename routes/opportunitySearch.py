@@ -140,7 +140,9 @@ def init_opportunity_search_results_route(app):
 
         # Build a Boolean search payload for MySQL
         # If FlashText catches a program name like "computer science", wrap it in quotes.
-        boolean_search_terms = [query_lower] + [f'"{phrase}"' for phrase in extracted_phrases]
+        for phrase in facet_words_to_remove:
+            query_lower = query_lower.replace(phrase, '')  # Remove recognized filter words from the search query
+        boolean_search_terms = [query_lower] + [f'"{phrase}"' for phrase in extracted_phrases if phrase not in facet_words_to_remove]  # Only include phrases that were not recognized as specific filters
         boolean_search_payload = ' '.join(boolean_search_terms)
 
 
