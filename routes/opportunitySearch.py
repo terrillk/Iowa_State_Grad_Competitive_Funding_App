@@ -90,25 +90,25 @@ def init_opportunity_search_results_route(app):
         for term in search_terms[:]:  # Iterate over a copy of the list to avoid modifying it while iterating
             for awardType in allAwardTypes:
                 if term == awardType[0].lower():
-                    search_terms.remove(term)
+                    # search_terms.remove(term)
                     if awardType[1] not in filteredAwardTypes:
                         filteredAwardTypes.append(awardType[1])  # Add the ID of the matched award type to the filtered list
                     break  # Exit the inner loop once a match is found
             for stage in allStages:
                 if term == stage[0].lower():
-                    search_terms.remove(term)
+                    # search_terms.remove(term)
                     if stage[1] not in filteredStages:
                         filteredStages.append(stage[1])  # Add the ID of the matched stage to the filtered list
                     break
             for field in allFields:
                 if term == field[0].lower():
-                    search_terms.remove(term)
+                    # search_terms.remove(term)
                     if field[1] not in filteredFields:
                         filteredFields.append(field[1])  # Add the ID of the matched field to the filtered list
                     break
             for nationality in allNationalities:
                 if term == nationality[0].lower():
-                    search_terms.remove(term)
+                    # search_terms.remove(term)
                     if nationality[1] not in filteredNationalities:
                         filteredNationalities.append(nationality[1])  # Add the ID of the matched nationality to the filtered list
                     break
