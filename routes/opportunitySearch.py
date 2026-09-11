@@ -51,13 +51,15 @@ def load_search_lexicon():
 
     #Load departments as phrases
     mycursor.execute("SELECT name FROM department")
-    for department_name in mycursor.fetchall():
-        keyword_processor.add_keyword(department_name.lower(), {"type": "text_phrase", "id": None})
+    for (department_name,) in mycursor.fetchall():
+        if department_name:  # Ensure the department name is not None or empty
+            keyword_processor.add_keyword(department_name.lower(), {"type": "text_phrase", "val": department_name.lower()})
 
     #Load programs as phrases
     mycursor.execute("SELECT name FROM program")
-    for program_name in mycursor.fetchall():
-        keyword_processor.add_keyword(program_name.lower(), {"type": "text_phrase", "id": None})
+    for (program_name,) in mycursor.fetchall():
+        if program_name:  # Ensure the program name is not None or empty
+            keyword_processor.add_keyword(program_name.lower(), {"type": "text_phrase", "val": program_name.lower()})
 
     mycursor.close()
     conn.close()
@@ -110,7 +112,7 @@ def init_opportunity_search_results_route(app):
         filteredAwardTypes = [int(x) for x in set(rawAwardTypes) if x and x != 'all']   # deduplicate the list of award types to avoid duplicates in the SQL query
 
         # Use FlashText to scan the raw query string for multi-word phrases that match known award types, stages, fields, nationalities, departments, or programs. This allows for more accurate parsing of the search intent.
-        extracted_keywords = keyword_processor.extract_keywords(query_lower, span_info=True)
+        extracted_keywords = keyword_processor.extract_keywords(query_lower)
         filteredStages = []
         filteredFields = []
         filteredNationalities = []
@@ -126,7 +128,8 @@ def init_opportunity_search_results_route(app):
             elif match["type"] == "nationality" and match["id"] not in filteredNationalities:
                 filteredNationalities.append(match["id"])
             elif match["type"] == "text_phrase":
-                extracted_phrases.append(match["keyword"])
+                extracted_phrases.append(match["val"])  # Store the matched phrase for later use in the search query
+                pass
 
         # Build a Boolean search payload for MySQL
         # If FlashText catches a program name like "computer science", wrap it in quotes.
