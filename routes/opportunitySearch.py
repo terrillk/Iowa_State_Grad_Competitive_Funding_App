@@ -118,15 +118,22 @@ def init_opportunity_search_results_route(app):
         filteredNationalities = []
         extracted_phrases = []
 
+        # Track words that were recognized as specific filters or phrases, and remove them from the search query to avoid redundancy in the search.
+        facet_words_to_remove = set()
+
         for match in extracted_keywords:
             if match["type"] == "awardtype" and match["id"] not in filteredAwardTypes:
                 filteredAwardTypes.append(match["id"])
+                facet_words_to_remove.add(match["val"])  # Add the matched award type to the set of words to remove from the search query
             elif match["type"] == "stage" and match["id"] not in filteredStages:
                 filteredStages.append(match["id"])
+                facet_words_to_remove.add(match["val"])  # Add the matched stage to the set of words to remove from the search query
             elif match["type"] == "field" and match["id"] not in filteredFields:
                 filteredFields.append(match["id"])
+                facet_words_to_remove.add(match["val"])  # Add the matched field to the set of words to remove from the search query
             elif match["type"] == "nationality" and match["id"] not in filteredNationalities:
                 filteredNationalities.append(match["id"])
+                facet_words_to_remove.add(match["val"])  # Add the matched nationality to the set of words to remove from the search query
             elif match["type"] == "text_phrase":
                 extracted_phrases.append(match["val"])  # Store the matched phrase for later use in the search query
                 pass
