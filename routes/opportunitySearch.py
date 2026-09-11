@@ -125,15 +125,19 @@ def init_opportunity_search_results_route(app):
             if match["type"] == "awardtype" and match["id"] not in filteredAwardTypes:
                 filteredAwardTypes.append(match["id"])
                 facet_words_to_remove.add(match["val"])  # Add the matched award type to the set of words to remove from the search query
+                print("FILTERED AWARD TYPES: ", filteredAwardTypes)  # Debugging line to print the filtered award types
             elif match["type"] == "stage" and match["id"] not in filteredStages:
                 filteredStages.append(match["id"])
                 facet_words_to_remove.add(match["val"])  # Add the matched stage to the set of words to remove from the search query
+                print("FILTERED STAGES: ", filteredStages)  # Debugging line to print the filtered stages
             elif match["type"] == "field" and match["id"] not in filteredFields:
                 filteredFields.append(match["id"])
                 facet_words_to_remove.add(match["val"])  # Add the matched field to the set of words to remove from the search query
+                print("FILTERED FIELDS: ", filteredFields)  # Debugging line to print the filtered fields
             elif match["type"] == "nationality" and match["id"] not in filteredNationalities:
                 filteredNationalities.append(match["id"])
                 facet_words_to_remove.add(match["val"])  # Add the matched nationality to the set of words to remove from the search query
+                print("FILTERED NATIONALITIES: ", filteredNationalities)  # Debugging line to print the filtered nationalities
             elif match["type"] == "text_phrase":
                 extracted_phrases.append(match["val"])  # Store the matched phrase for later use in the search query
                 pass
@@ -142,6 +146,7 @@ def init_opportunity_search_results_route(app):
         # If FlashText catches a program name like "computer science", wrap it in quotes.
         for phrase in facet_words_to_remove:
             query_lower = query_lower.replace(phrase, '')  # Remove recognized filter words from the search query
+            print("QUERY_LOWER: ", query_lower)  # Debugging line to print the modified query after removing recognized filter words
         boolean_search_terms = [query_lower] + [f'"{phrase}"' for phrase in extracted_phrases if phrase not in facet_words_to_remove]  # Only include phrases that were not recognized as specific filters
         boolean_search_payload = ' '.join(boolean_search_terms)
 
