@@ -255,6 +255,17 @@ def init_opportunity_search_results_route(app):
                     # print(opportunityInfo)
                     opportunities.append(opportunityInfo)
 
+                # Reconnect to the database to fetch all filter options for rendering the filter menu
+                conn = get_db_connection()
+                mycursor = conn.cursor(buffered=True)
+                mycursor.execute("SELECT * FROM awardtype ORDER BY name ASC")
+                allAwardTypes = mycursor.fetchall()
+                mycursor.execute("SELECT * FROM stage")
+                allStages = mycursor.fetchall()
+                mycursor.execute("SELECT * FROM field ORDER BY name ASC")
+                allFields = mycursor.fetchall()
+                mycursor.execute("SELECT * FROM nationality")
+                allNationalities = mycursor.fetchall()
 
                 renderResults = render_template('customer/_searchResults.html', opportunities=opportunities, search_query=raw_query, allAwardTypes=allAwardTypes, allStages=allStages, allFields=allFields, allNationalities=allNationalities)
                 renderFilterMenu = render_template('customer/_opportunitySearchFilters.html', allAwardTypes=allAwardTypes, allStages=allStages, allFields=allFields, allNationalities=allNationalities, filteredAwardTypes=filteredAwardTypes, filteredStages=filteredStages, filteredFields=filteredFields, filteredNationalities=filteredNationalities)
