@@ -131,19 +131,19 @@ def init_opportunity_search_results_route(app):
             if keyword["type"] == "awardtype" and keyword["id"] not in filteredAwardTypes:
                 filteredAwardTypes.append(keyword["id"])
                 facet_words_to_remove.add(keyword["val"])  # Add the matched award type to the set of words to remove from the search query
-                print("FILTERED AWARD TYPES: ", filteredAwardTypes)  # Debugging line to print the filtered award types
+                # print("FILTERED AWARD TYPES: ", filteredAwardTypes)  # Debugging line to print the filtered award types
             elif keyword["type"] == "stage" and keyword["id"] not in filteredStages:
                 filteredStages.append(keyword["id"])
                 facet_words_to_remove.add(keyword["val"])  # Add the matched stage to the set of words to remove from the search query
-                print("FILTERED STAGES: ", filteredStages)  # Debugging line to print the filtered stages
+                # print("FILTERED STAGES: ", filteredStages)  # Debugging line to print the filtered stages
             elif keyword["type"] == "field" and keyword["id"] not in filteredFields:
                 filteredFields.append(keyword["id"])
                 facet_words_to_remove.add(keyword["val"])  # Add the matched field to the set of words to remove from the search query
-                print("FILTERED FIELDS: ", filteredFields)  # Debugging line to print the filtered fields
+                # print("FILTERED FIELDS: ", filteredFields)  # Debugging line to print the filtered fields
             elif keyword["type"] == "nationality" and keyword["id"] not in filteredNationalities:
                 filteredNationalities.append(keyword["id"])
                 facet_words_to_remove.add(keyword["val"])  # Add the matched nationality to the set of words to remove from the search query
-                print("FILTERED NATIONALITIES: ", filteredNationalities)  # Debugging line to print the filtered nationalities
+                # print("FILTERED NATIONALITIES: ", filteredNationalities)  # Debugging line to print the filtered nationalities
             elif keyword["type"] == "text_phrase":
                 extracted_phrases.append(keyword["val"])  # Store the matched phrase for later use in the search query
                 pass
@@ -152,7 +152,7 @@ def init_opportunity_search_results_route(app):
         # If FlashText catches a program name like "computer science", wrap it in quotes.
         for phrase in facet_words_to_remove:
             query_lower = query_lower.replace(phrase, '')  # Remove recognized filter words from the search query
-        print("QUERY_LOWER: ", query_lower)  # Debugging line to print the modified query after removing recognized filter words
+        # print("QUERY_LOWER: ", query_lower)  # Debugging line to print the modified query after removing recognized filter words
         boolean_search_terms = [query_lower] + [f'"{phrase}"' for phrase in extracted_phrases if phrase not in facet_words_to_remove]  # Only include phrases that were not recognized as specific filters
         boolean_search_payload = ' '.join(boolean_search_terms)
 
@@ -217,7 +217,7 @@ def init_opportunity_search_results_route(app):
 
                 query += " GROUP BY o.id, o.name, o.website, org.name, org.logopath"
 
-                print("FINAL SQL QUERY:", query)  # Debugging line to print the final SQL query
+                # print("FINAL SQL QUERY:", query)  # Debugging line to print the final SQL query
 
                 mycursor.execute(query, (boolean_search_payload, boolean_search_payload, boolean_search_payload, *filteredAwardTypes, *filteredStages, *filteredFields, *filteredNationalities))
                 matches = mycursor.fetchall()
